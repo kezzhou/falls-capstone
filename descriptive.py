@@ -69,23 +69,6 @@ df.dtypes
 ## Pushing Data into MySqlWorkbench
 
 
-# Replace these with your MySQL database credentials
-host = 'localhost'
-user = 'root'
-password = ''
-database = 'AHI_falls'
-
-# Read the CSV file using pandas
-diagnosis = pd.read_csv('data/modified/diagnosis_mod.csv')
-encounter = pd.read_csv('data/modified/encounter_mod.csv')
-lab_result = pd.read_csv('data/modified/lab_result_mod.csv')
-medication_drug = pd.read_csv('data/modified/medication_drug_mod.csv')
-medication_ingredient = pd.read_csv('data/modified/medication_ingredient_mod.csv')
-patient = pd.read_csv('data/modified/patient_mod.csv')
-standardized_terminology = pd.read_csv('data/modified/standardized_terminology_mod.csv')
-vital_signs = pd.read_csv('data/modified/vital_signs_mod.csv')
-
-
 # Connect to the MySQL database
 conn = mysql.connector.connect(host=host, user=user, password=password, database=database)
 cursor = conn.cursor()
@@ -188,15 +171,43 @@ cursor.execute(table8_schema)
 conn.commit()
 
 # Read data from CSV files using pandas
-csv_file1 = 'data_table1.csv'  # Replace with the path to your CSV file for table1
-csv_file2 = 'data_table2.csv'  # Replace with the path to your CSV file for table2
+csv_file1 = 'data/modified/diagnosis_mod.csv' 
+csv_file2 = 'data/modified/encounter_mod.csv'
+csv_file3 = 'data/modified/lab_result_mod.csv'
+csv_file4 = 'data/modified/medication_drug_mod.csv'
+csv_file5 = 'data/modified/medication_ingredient_mod.csv'  
+csv_file6 = 'data/modified/patient_mod.csv'
+csv_file7 = 'data/modified/standardized_terminology_mod.csv'
+csv_file8 = 'data/modified/vital_signs_mod.csv'
+
+# Read the CSV file using pandas
+diagnosis = pd.read_csv('data/modified/diagnosis_mod.csv')
+encounter = pd.read_csv('data/modified/encounter_mod.csv')
+lab_result = pd.read_csv('data/modified/lab_result_mod.csv')
+medication_drug = pd.read_csv('data/modified/medication_drug_mod.csv')
+medication_ingredient = pd.read_csv('data/modified/medication_ingredient_mod.csv')
+patient = pd.read_csv('data/modified/patient_mod.csv')
+standardized_terminology = pd.read_csv('data/modified/standardized_terminology_mod.csv')
+vital_signs = pd.read_csv('data/modified/vital_signs_mod.csv')
 
 df_table1 = pd.read_csv(csv_file1)
 df_table2 = pd.read_csv(csv_file2)
+df_table3 = pd.read_csv(csv_file3)
+df_table4 = pd.read_csv(csv_file4)
+df_table5 = pd.read_csv(csv_file5)
+df_table6 = pd.read_csv(csv_file6)
+df_table7 = pd.read_csv(csv_file7)
+df_table8 = pd.read_csv(csv_file8)
 
 # Push data from CSV files to MySQL tables
 df_table1.to_sql(table1_name, conn, if_exists='replace', index=False)
 df_table2.to_sql(table2_name, conn, if_exists='replace', index=False)
+df_table3.to_sql(table3_name, conn, if_exists='replace', index=False)
+df_table4.to_sql(table4_name, conn, if_exists='replace', index=False)
+df_table5.to_sql(table5_name, conn, if_exists='replace', index=False)
+df_table6.to_sql(table6_name, conn, if_exists='replace', index=False)
+df_table7.to_sql(table7_name, conn, if_exists='replace', index=False)
+df_table8.to_sql(table8_name, conn, if_exists='replace', index=False)
 
 # Commit the changes to the database
 conn.commit()
@@ -205,29 +216,28 @@ conn.commit()
 cursor.close()
 conn.close()
 
-# Define the table name in your database where you want to insert the data
-table_name = 'diagnosis'
 
-# Create the table in the database (uncomment if needed)
-# Note: Adjust the column names and data types according to your CSV file
-# cursor.execute(f"CREATE TABLE {table_name} (col1 INT, col2 VARCHAR(255), col3 FLOAT)")
+## Demographic Data Analysis ##
 
-# Insert the data into the MySQL database
-for index, row in diagnosis.iterrows():
-    values = tuple(row)
-    placeholders = ', '.join(['%s'] * len(row))
-    query = f"INSERT INTO {table_name} VALUES ({placeholders})"
-    cursor.execute(query, values)
+# Connect to the MySQL database
+conn = mysql.connector.connect(host=host, user=user, password=password, database=database)
+cursor = conn.cursor()
 
-# Commit the changes and close the connection
-conn.commit()
+table_name = 'patient'
+
+# Query to fetch all data from the table
+query = f"SELECT * FROM {table_name}"
+
+# Use pandas read_sql function to fetch data from the database and store it as a DataFrame
+df = pd.read_sql(query, conn)
+
+# Close the connection
 cursor.close()
 conn.close()
 
 
-## Demographic Data ##
 
-df = pd.read_csv("data/patient.csv")
+## Basic descriptive stats
 
 df.head()
 
