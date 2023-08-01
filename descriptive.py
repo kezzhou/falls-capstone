@@ -8,48 +8,80 @@ import sqlalchemy
 
 ## Data Cleaning and Transformation
 
-df = pd.read_csv("data/original/diagnosis.csv")
+## Combine tables and drop columns and duplicates ##
+
+table1 = pd.read_csv('data/original/diagnosis_falls.csv')
+table2 = pd.read_csv('data/original/diagnosis.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df.drop(columns=['encounter_id', 'principal_diagnosis_indicator', 'admitting_diagnosis', 'reason_for_visit','derived_by_TriNetX', 'source_id'], inplace=True)
 df.dtypes
+df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 df.drop_duplicates()
 df.to_csv('data/modified/diagnosis_mod.csv')
 
 
-df = pd.read_csv("data/original/encounter.csv")
+table1 = pd.read_csv('data/original/encounter_falls.csv')
+table2 = pd.read_csv('data/original/encounter.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df.drop(columns=['start_date_derived_by_TriNetX', 'end_date_derived_by_TriNetX', 'derived_by_TriNetX'], inplace=True)
 df.dtypes
+df['start_date'] = pd.to_datetime(df['start_date'], format='%Y%m%d')
+df['end_date'] = pd.to_datetime(df['end_date'], format='%Y%m%d')
 df.drop_duplicates()
 df.to_csv('data/modified/encounter_mod.csv')
-df.dtypes
 
-df = pd.read_csv("data/original/lab_result.csv")
+
+table1 = pd.read_csv('data/original/lab_result_falls.csv')
+table2 = pd.read_csv('data/original/lab_result.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df.drop(columns=['encounter_id', 'source_id', 'derived_by_TriNetX'], inplace=True)
 df.dtypes
+df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 df.drop_duplicates()
 df.to_csv('data/modified/lab_result_mod.csv')
 df.dtypes
 
-df = pd.read_csv("data/original/medication_drug.csv")
+table1 = pd.read_csv('data/original/medication_drug_falls.csv')
+table2 = pd.read_csv('data/original/medication_drug.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df.drop(columns=['encounter_id', 'unique_id', 'strength', 'quantity_dispensed','days_supply','derived_by_TriNetX', 'source_id'], inplace=True)
 df.dtypes
+df['start_date'] = pd.to_datetime(df['start_date'], format='%Y%m%d')
 df.drop_duplicates()
 df.to_csv('data/modified/medication_drug_mod.csv')
 df.dtypes
 
-df = pd.read_csv("data/original/medication_ingredient.csv")
+table1 = pd.read_csv('data/original/medication_ingredient_falls.csv')
+table2 = pd.read_csv('data/original/medication_ingredient.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df.drop(columns=['encounter_id', 'unique_id', 'strength', 'brand','derived_by_TriNetX', 'source_id'], inplace=True)
 df.dtypes
+df['start_date'] = pd.to_datetime(df['start_date'], format='%Y%m%d')
 df.drop_duplicates()
 df.to_csv('data/modified/medication_ingredient_mod.csv')
 df.dtypes
 
+table1 = pd.read_csv('data/original/patient_falls.csv')
+table2 = pd.read_csv('data/original/patient.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df = pd.read_csv("data/original/patient.csv")
 df.drop(columns=['reason_yob_missing', 'patient_regional_location', 'source_id'], inplace=True)
 df.dtypes
+df['month_year_death'] = pd.to_datetime(df['month_year_death'], format='%Y%m')
 df.drop_duplicates()
 df.to_csv('data/modified/patient_mod.csv')
 df.dtypes
 
+table1 = pd.read_csv('data/original/standardized_terminology_falls.csv')
+table2 = pd.read_csv('data/original/standardized_terminology.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
 df = pd.read_csv("data/original/standardized_terminology.csv")
 df.drop(columns=['path'], inplace=True)
 df.dtypes
@@ -57,20 +89,31 @@ df.drop_duplicates()
 df.to_csv('data/modified/standardized_terminology_mod.csv')
 df.dtypes
 
-df = pd.read_csv("data/original/vital_signs.csv")
+table1 = pd.read_csv('data/original/vitals_signs_falls.csv')
+table2 = pd.read_csv('data/original/vitals_signs.csv')
+# Concatenate the two DataFrames vertically (row-wise)
+df = pd.concat([table1, table2], ignore_index=True)
+df = pd.read_csv("data/original/vitals_signs.csv")
 df.drop(columns=['derived_by_TriNetX', 'source_id'], inplace=True)
 df.dtypes
+df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 df.drop_duplicates()
-df.to_csv('data/modified/vital_signs_mod.csv')
+df.to_csv('data/modified/vitals_signs_mod.csv')
 df.dtypes
 
 
 
 ## Pushing Data into MySqlWorkbench
 
+db_config = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': '',
+    'database': 'AHI_Falls',
+}
 
 # Connect to the MySQL database
-conn = mysql.connector.connect(host=host, user=user, password=password, database=database)
+conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 
 # Get the list of all tables in the database
@@ -149,9 +192,9 @@ table7_schema = '''
     )
 '''
 
-table8_name = 'vital_signs'
+table8_name = 'vitals_signs'
 table8_schema = '''
-    CREATE TABLE IF NOT EXISTS vital_signs (
+    CREATE TABLE IF NOT EXISTS vitals_signs (
         column1 INT,
         column2 VARCHAR(255),
         column3 DATE
@@ -178,7 +221,7 @@ csv_file4 = 'data/modified/medication_drug_mod.csv'
 csv_file5 = 'data/modified/medication_ingredient_mod.csv'  
 csv_file6 = 'data/modified/patient_mod.csv'
 csv_file7 = 'data/modified/standardized_terminology_mod.csv'
-csv_file8 = 'data/modified/vital_signs_mod.csv'
+csv_file8 = 'data/modified/vitals_signs_mod.csv'
 
 # Read the CSV file using pandas
 diagnosis = pd.read_csv('data/modified/diagnosis_mod.csv')
@@ -188,7 +231,7 @@ medication_drug = pd.read_csv('data/modified/medication_drug_mod.csv')
 medication_ingredient = pd.read_csv('data/modified/medication_ingredient_mod.csv')
 patient = pd.read_csv('data/modified/patient_mod.csv')
 standardized_terminology = pd.read_csv('data/modified/standardized_terminology_mod.csv')
-vital_signs = pd.read_csv('data/modified/vital_signs_mod.csv')
+vitals_signs = pd.read_csv('data/modified/vitals_signs_mod.csv')
 
 df_table1 = pd.read_csv(csv_file1)
 df_table2 = pd.read_csv(csv_file2)
@@ -211,6 +254,33 @@ df_table8.to_sql(table8_name, conn, if_exists='replace', index=False)
 
 # Commit the changes to the database
 conn.commit()
+
+# Let's make some new tables with joins for ease of use
+
+# SQL query for left join and creating a new table
+query = '''
+CREATE TABLE diagnosis_patient AS
+SELECT *
+FROM diagnosis
+LEFT JOIN patient
+ON diagnosis.patient_id = patient.patient_id;
+'''
+
+# Execute the SQL query
+cursor.execute(query)
+conn.commit()
+
+
+# Optional: Read the new table into a pandas DataFrame to verify the results
+conn = mysql.connector.connect(**db_config)
+query = 'SELECT * FROM diagnosis_patient;'
+df_diagnosis_patient = pd.read_sql(query, conn)
+conn.close()
+
+# Print the DataFrame to see the new table data
+print(df_diagnosis_patient)
+
+
 
 # Close the cursor and connection
 cursor.close()
