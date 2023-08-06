@@ -4,6 +4,34 @@ import numpy as np
 import datetime
 import mysql.connector
 import sqlalchemy
+from mysql.connector import Error
+
+## Determining dtypes for tables in Mysqlworkbench
+df = pd.read_csv('./data/modified/diagnosis_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/encounter_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/lab_result_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/medication_drug_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/medication_ingredient_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/patient_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/standardized_terminology_mod.csv')
+df.dtypes
+
+df = pd.read_csv('./data/modified/vitals_signs_mod.csv')
+df.dtypes
+
+
 
 ## Pushing Data into MySqlWorkbench
 
@@ -23,139 +51,91 @@ cursor.execute("SHOW TABLES")
 tables = cursor.fetchall()
 print(tables)
 
-# Drop each table one by one
-for table in tables:
-    table_name = table[0]
-    drop_table_query = f"DROP TABLE IF EXISTS {table_name}"
-    cursor.execute(drop_table_query)
+
+## Drop existing tables
+
+def drop_all_tables():
+    try:
+        connection = mysql.connector.connect(**db_config)
+
+        if connection.is_connected():
+            cursor = connection.cursor()
+
+            # Get all table names in the database
+            show_tables_query = "SHOW TABLES;"
+            cursor.execute(show_tables_query)
+            tables = [table[0] for table in cursor.fetchall()]
+
+            # Drop each table
+            for table in tables:
+                drop_table_query = f"DROP TABLE IF EXISTS {table};"
+                cursor.execute(drop_table_query)
+
+            connection.commit()
+            print("All tables dropped successfully.")
+
+    except Error as e:
+        print("Error while dropping tables:", e)
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("Connection closed.")
+
+if __name__ == "__main__":
+    drop_all_tables()
+
+
 
 
 # Define the table names and their corresponding schema
-table1_name = 'diagnosis'
-table1_schema = '''
-    CREATE TABLE IF NOT EXISTS diagnosis (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 FLOAT
-    )
-'''
 
-table2_name = 'encounter'
-table2_schema = '''
-    CREATE TABLE IF NOT EXISTS encounter (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
+def create_connection():
+    """Create a MySQL database connection."""
+    try:
+        connection = mysql.connector.connect(**db_config)
+        if connection.is_connected():
+            print("Connected to MySQL database.")
+            return connection
+    except Error as e:
+        print(f"Error: {e}")
+        return None
 
-table3_name = 'lab_result'
-table3_schema = '''
-    CREATE TABLE IF NOT EXISTS lab_result (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
+def push_csv_to_table(connection, csv_file, table_name):
+    """Push CSV data into an empty MySQL table."""
+    try:
+        df = pd.read_csv(csv_file)  # Read the CSV data into a pandas DataFrame
+        if connection.is_connected():
+            cursor = connection.cursor()
 
-table4_name = 'medication_drug'
-table4_schema = '''
-    CREATE TABLE IF NOT EXISTS medication_drug (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
+            # Create an empty table with the same columns as the DataFrame
+            # Note: You may need to adjust data types and column names accordingly
+            create_table_query = f"CREATE TABLE {table_name} ({', '.join([f'`{col}` TEXT' for col in df.columns])})"
+            cursor.execute(create_table_query)
 
-table5_name = 'medication_ingredient'
-table5_schema = '''
-    CREATE TABLE IF NOT EXISTS medication_ingredient (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
+            # Insert the CSV data into the table
+            for _, row in df.iterrows():
+                insert_query = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ({', '.join(['%s'] * len(df.columns))})"
+                cursor.execute(insert_query, tuple(row))
 
-table6_name = 'patient'
-table6_schema = '''
-    CREATE TABLE IF NOT EXISTS patient (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
+            connection.commit()
+            print("Data pushed successfully.")
+    except Error as e:
+        print(f"Error: {e}")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("Connection closed.")
 
-table7_name = 'standardized_terminology'
-table7_schema = '''
-    CREATE TABLE IF NOT EXISTS standardized_terminology (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
+if __name__ == "__main__":
+    csv_file_path = "./data/modified/diagnosis_mod.csv"  # Replace with the actual path to your CSV file
+    table_name = "diagnosis"  # Replace with the name of the empty table in MySQL
 
-table8_name = 'vitals_signs'
-table8_schema = '''
-    CREATE TABLE IF NOT EXISTS vitals_signs (
-        column1 INT,
-        column2 VARCHAR(255),
-        column3 DATE
-    )
-'''
-# Execute the SQL queries to create the tables
-cursor.execute(table1_schema)
-cursor.execute(table2_schema)
-cursor.execute(table3_schema)
-cursor.execute(table4_schema)
-cursor.execute(table5_schema)
-cursor.execute(table6_schema)
-cursor.execute(table7_schema)
-cursor.execute(table8_schema)
 
-# Commit the changes to the database
-conn.commit()
-
-# Read data from CSV files using pandas
-csv_file1 = 'data/modified/diagnosis_mod.csv' 
-csv_file2 = 'data/modified/encounter_mod.csv'
-csv_file3 = 'data/modified/lab_result_mod.csv'
-csv_file4 = 'data/modified/medication_drug_mod.csv'
-csv_file5 = 'data/modified/medication_ingredient_mod.csv'  
-csv_file6 = 'data/modified/patient_mod.csv'
-csv_file7 = 'data/modified/standardized_terminology_mod.csv'
-csv_file8 = 'data/modified/vitals_signs_mod.csv'
-
-# Read the CSV file using pandas
-diagnosis = pd.read_csv('data/modified/diagnosis_mod.csv')
-encounter = pd.read_csv('data/modified/encounter_mod.csv')
-lab_result = pd.read_csv('data/modified/lab_result_mod.csv')
-medication_drug = pd.read_csv('data/modified/medication_drug_mod.csv')
-medication_ingredient = pd.read_csv('data/modified/medication_ingredient_mod.csv')
-patient = pd.read_csv('data/modified/patient_mod.csv')
-standardized_terminology = pd.read_csv('data/modified/standardized_terminology_mod.csv')
-vitals_signs = pd.read_csv('data/modified/vitals_signs_mod.csv')
-
-df_table1 = pd.read_csv(csv_file1)
-df_table2 = pd.read_csv(csv_file2)
-df_table3 = pd.read_csv(csv_file3)
-df_table4 = pd.read_csv(csv_file4)
-df_table5 = pd.read_csv(csv_file5)
-df_table6 = pd.read_csv(csv_file6)
-df_table7 = pd.read_csv(csv_file7)
-df_table8 = pd.read_csv(csv_file8)
-
-# Push data from CSV files to MySQL tables
-df_table1.to_sql(table1_name, conn, if_exists='replace', index=False)
-df_table2.to_sql(table2_name, conn, if_exists='replace', index=False)
-df_table3.to_sql(table3_name, conn, if_exists='replace', index=False)
-df_table4.to_sql(table4_name, conn, if_exists='replace', index=False)
-df_table5.to_sql(table5_name, conn, if_exists='replace', index=False)
-df_table6.to_sql(table6_name, conn, if_exists='replace', index=False)
-df_table7.to_sql(table7_name, conn, if_exists='replace', index=False)
-df_table8.to_sql(table8_name, conn, if_exists='replace', index=False)
-
-# Commit the changes to the database
-conn.commit()
+    connection = create_connection()
+    if connection:
+        push_csv_to_table(connection, csv_file_path, table_name)
 
 # Let's make some new tables with joins for ease of use
 

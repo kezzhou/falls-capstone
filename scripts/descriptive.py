@@ -4,92 +4,99 @@ import numpy as np
 import datetime
 import mysql.connector
 import sqlalchemy
+import matplotlib.pyplot as plt
 
 ## Demographic Data Analysis ##
 
-# Connect to the MySQL database
-conn = mysql.connector.connect(host=host, user=user, password=password, database=database)
-cursor = conn.cursor()
-
-table_name = 'patient'
-
-# Query to fetch all data from the table
-query = f"SELECT * FROM {table_name}"
-
-# Use pandas read_sql function to fetch data from the database and store it as a DataFrame
-df = pd.read_sql(query, conn)
-
-# Close the connection
-cursor.close()
-conn.close()
-
-
-
 ## Basic descriptive stats
+falls_df = pd.read_csv('./data/original/patient_falls.csv')
+non_falls_df = pd.read_csv('./data/original/patient.csv')
+falls_df.drop_duplicates()
+non_falls_df.drop_duplicates()
 
-import mysql.connector
-import pandas as pd
+##sex
 
-# Replace the following variables with your MySQL database connection details
-host = 'your_host'
-user = 'your_username'
-password = 'your_password'
-database = 'your_database_name'
-table_name = 'your_table_name'
+# Calculate the male/female ratio for falls patients
+falls_ratio = falls_df['sex'].value_counts(normalize=True)
 
-# Connect to the MySQL server
-try:
-    connection = mysql.connector.connect(
-        host=host,
-        user=user,
-        password=password,
-        database=database
-    )
-    if connection.is_connected():
-        print('Connected to MySQL database')
+# Calculate the male/female ratio for non-falls patients
+non_falls_ratio = non_falls_df['sex'].value_counts(normalize=True)
 
-        # Query to fetch the data from the table
-        query = f"SELECT * FROM {table_name};"
+# Compare the ratios
+print("Male/Female ratio for falls patients:")
+print(falls_ratio)
 
-        # Read the data into a Pandas DataFrame
-        df = pd.read_sql_query(query, connection)
+print("\nMale/Female ratio for non-falls patients:")
+print(non_falls_ratio)
 
-        # Perform descriptive statistics
-        print('Descriptive Statistics:')
-        print(df.describe())
+# Visualize the ratios as bar charts
+fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
-        # Close the connection
-        connection.close()
-        print('Connection closed')
-        
-    else:
-        print('Unable to connect to MySQL database')
+# Bar chart for falls patients
+axes[0].bar(falls_ratio.index, falls_ratio.values)
+axes[0].set_title("Male/Female ratio for falls patients")
+axes[0].set_ylabel("Ratio")
+axes[0].set_xlabel("Sex")
 
-except Exception as e:
-    print('Error:', e)
+# Bar chart for non-falls patients
+axes[1].bar(non_falls_ratio.index, non_falls_ratio.values)
+axes[1].set_title("Male/Female ratio for non-falls patients")
+axes[1].set_ylabel("Ratio")
+axes[1].set_xlabel("Sex")
 
+plt.tight_layout()
+plt.show()
 
-
-
-
-
-
-df.head()
-
-df.describe()
-
-
-## sex
-df.groupby('sex').count() / len(df)
-# patient data has roughly even gender distribution, at 54.3 percent Female and 45.7 percent Male
 
 ## race
-df.groupby('race').count() / len(df)
-# mostly white
+# Counts for race in falls patients
+falls_ratio = falls_df['race'].value_counts(normalize=True)
+
+# Counts for race in non-falls patients
+non_falls_ratio = non_falls_df['race'].value_counts(normalize=True)
+
+# Visualize the counts as bar charts
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+# Bar chart for falls patients
+axes[0].bar(falls_ratio.index, falls_ratio.values)
+axes[0].set_title("Race distribution for falls patients")
+axes[0].set_ylabel("Counts")
+axes[0].set_xlabel("Race")
+
+# Bar chart for non-falls patients
+axes[1].bar(non_falls_ratio.index, non_falls_ratio.values)
+axes[1].set_title("Race distribution for non-falls patients")
+axes[1].set_ylabel("Counts")
+axes[1].set_xlabel("Race")
+
+plt.tight_layout()
+plt.show()
 
 ## ethnicity
-# some unknown races seem to correlate to hispanic
-df.groupby('ethnicity').count() / len(df)
+# Counts for race in falls patients
+falls_ratio = falls_df['ethnicity'].value_counts(normalize=True)
+
+# Counts for race in non-falls patients
+non_falls_ratio = non_falls_df['ethnicity'].value_counts(normalize=True)
+
+# Visualize the counts as bar charts
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+# Bar chart for falls patients
+axes[0].bar(falls_ratio.index, falls_ratio.values)
+axes[0].set_title("Ethnicity distribution for falls patients")
+axes[0].set_ylabel("Counts")
+axes[0].set_xlabel("Ethnicity")
+
+# Bar chart for non-falls patients
+axes[1].bar(non_falls_ratio.index, non_falls_ratio.values)
+axes[1].set_title("Ethnicity distribution for non-falls patients")
+axes[1].set_ylabel("Counts")
+axes[1].set_xlabel("Ethnicity")
+
+plt.tight_layout()
+plt.show()
 
 ## age
 today = datetime.date.today()
