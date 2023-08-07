@@ -363,8 +363,6 @@ print(descriptive_stats)
 ### lab results ####
 # Read the CSV file into a DataFrame
 df_lab_result_falls = pd.read_csv('./data/original/lab_result_falls.csv')
-df.drop_duplicates
-
 
 # Group by 'patient_id' and count the occurrences of each 'code'
 code_counts_per_patient = df_lab_result_falls.groupby('patient_id')['code'].count()
