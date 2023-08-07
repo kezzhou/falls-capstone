@@ -27,7 +27,7 @@ What you'll find in this repository:
 
 ## Resources:
 
-[Medical Appointment No Shows Public Dataset](https://www.kaggle.com/datasets/joniarroba/noshowappointments)
+[TriNetX DeIdentified Patient Database](https://trinetx.com/)
 
 ## Requirements:
 
@@ -37,6 +37,8 @@ What you'll find in this repository:
 - Tableau
 
 ## Notes:
+
+Querying datasets from TriNetX requires an organization email, which unfortunately I did not apply for at the start of the project because of its long processing time. 
 
 Please refer to the documents folder for documentation of project planning.
 
