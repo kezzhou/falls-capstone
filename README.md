@@ -38,8 +38,12 @@ What you'll find in this repository:
 
 ## Notes:
 
-Querying datasets from TriNetX requires an organization email, which unfortunately I did not apply for at the start of the project because of its long processing time. 
-
 Please refer to the documents folder for documentation of project planning.
 
+Querying datasets from TriNetX requires an organization email, which unfortunately I did not apply for at the start of the project because of its long processing time. 
+
 Currently working through problems with pushing data into mysqlworkbench. For now I've opted to use the CSVs directly for analysis and visualization. 
+
+Even the falls patients don't seem to have falls as their primary diagnosis, which is strange and interferes with easy identification of falls patients.
+
+Considering trying a query for patients with at least two diagnoses of falls less than 30 days apart or looking for encounter types of HH (Health Home).
